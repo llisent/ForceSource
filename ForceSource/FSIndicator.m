@@ -136,7 +136,7 @@
     
     // 背景球的平移和缩放
     {
-        CGFloat desPosX = margin + currentPage*width;
+        CGFloat desPosX = currentPage*width;
         
         // 计算位置，开始动画
         [CATransaction begin];
@@ -146,7 +146,7 @@
     
     // 大球平移缩放
     {
-        CGFloat desPosX = margin + currentPage*width;
+        CGFloat desPosX = currentPage*width;
         
         // 计算位置，开始动画
         [CATransaction begin];
@@ -170,14 +170,36 @@
         
         for (NSInteger i=st; i<ed; ++i) {
             
-            CGFloat desPosX = isLeft?-width:0;
-            // 计算位置，开始动画
+            // 半圆动画
+            CAKeyframeAnimation *curveAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
             
-            [CATransaction begin];
+            CGFloat stAngle = isLeft ? 0 : M_PI;
+            CGFloat edAngle = isLeft ? M_PI : 0;
+            CGMutablePathRef path = CGPathCreateMutable();
+            CGPathAddArc(path, nil, -width/2, 0, width/2, stAngle, edAngle, !isLeft);
             
+            curveAnimation.path = path;
             CAShapeLayer *layer = smallBubbleLayers[i];
-            layer.position = CGPointMake(desPosX, 0);
-            [CATransaction commit];
+
+            curveAnimation.duration = animationDuration;
+            
+            [layer addAnimation:curveAnimation forKey:@"curveAnimation"];
+            
+            // 弹性缩放
+            
+            // 阻尼震动
+            CAKeyframeAnimation *bounceAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
+            bounceAnimation.delegate = self;
+            bounceAnimation.beginTime = CACurrentMediaTime() + animationDuration;
+            bounceAnimation.values = @[[NSValue valueWithCGPoint:CGPointMake(0, 0)],
+                                       [NSValue valueWithCGPoint:CGPointMake(0, 4)],
+                                       [NSValue valueWithCGPoint:CGPointMake(0, 0)],
+                                       [NSValue valueWithCGPoint:CGPointMake(0, -4)],
+                                       [NSValue valueWithCGPoint:CGPointMake(0, 0)]];
+            bounceAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            [layer addAnimation:bounceAnimation forKey:@"bounce"];
+            
+            
         }
         
     }
@@ -188,6 +210,11 @@
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
+    [CATransaction begin];
+    NSLog(@"hello");
+    
+    [CATransaction setDisableActions:YES];
+    
     for (int i=0; i<smallBubbleLayers.count; ++i) {
         CAShapeLayer *layer = smallBubbleLayers[i];
         CGPoint pos = CGPointZero;
@@ -197,6 +224,7 @@
         }
         layer.position = pos;
     }
+    [CATransaction commit];
 }
 
 
