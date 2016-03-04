@@ -47,8 +47,8 @@
         smallBubbleSize = 16;
         mainBubbleSize = 20;
         bubbleXOffsetSpace = 12;
-        bubbleYOffsetSpace = 10;
-        margin = 3;
+        bubbleYOffsetSpace = 6;
+        margin = 6;
         
         animationDuration = 0.2;
         smallBubbleMoveRadius = smallBubbleSize + bubbleXOffsetSpace;
@@ -68,7 +68,7 @@
 - (void)configuration
 {
     CGFloat width = smallBubbleSize + bubbleXOffsetSpace;
-    CGFloat height = margin*2 + smallBubbleSize + bubbleYOffsetSpace;
+    CGFloat height = margin*2 + smallBubbleSize + bubbleYOffsetSpace*2;
     CGRect frame;
     frame.size.width = margin*2 + (smallBubbleSize + bubbleXOffsetSpace) * self.numberOfPages;
     frame.size.height = height;
@@ -89,14 +89,10 @@
     backgroundBubbleLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, height, height)].CGPath;
     [self.layer addSublayer:backgroundBubbleLayer];
     
-    mainBubbleLayer = [CAShapeLayer layer];
-    mainBubbleLayer.fillColor = bigBubbleColor.CGColor;
-    mainBubbleLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(margin+width/2-mainBubbleSize/2, height/2-mainBubbleSize/2, mainBubbleSize, mainBubbleSize)].CGPath;
-    [self.layer addSublayer:mainBubbleLayer];
-    
+
     smallBubbleLayers = [NSMutableArray array];
     CGRect smallFrame;
-    smallFrame.origin.x = margin + width/2 - smallBubbleSize/2;
+    smallFrame.origin.x = margin + bubbleXOffsetSpace/2;
     smallFrame.origin.y = height/2-smallBubbleSize/2;
     smallFrame.size.width = smallBubbleSize;
     smallFrame.size.height = smallBubbleSize;
@@ -111,6 +107,12 @@
         }
         smallFrame.origin.x += width;
     }
+    
+    mainBubbleLayer = [CAShapeLayer layer];
+    mainBubbleLayer.fillColor = bigBubbleColor.CGColor;
+    mainBubbleLayer.path = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(margin + bubbleXOffsetSpace/2-mainBubbleSize/2+smallBubbleSize/2, height/2-mainBubbleSize/2, mainBubbleSize, mainBubbleSize)].CGPath;
+    [self.layer addSublayer:mainBubbleLayer];
+    
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
@@ -148,10 +150,18 @@
     {
         CGFloat desPosX = currentPage*width;
         
-        // 计算位置，开始动画
+        // 计算位置
         [CATransaction begin];
         mainBubbleLayer.position = CGPointMake(desPosX, 0);
         [CATransaction commit];
+        
+        // 缩放动画
+        CAKeyframeAnimation *scaleAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
+        scaleAnimation.values = @[[NSValue valueWithCATransform3D:CATransform3DIdentity],
+                                  [NSValue valueWithCATransform3D:CATransform3DMakeScale(1, 0.5, 1)],
+                                  [NSValue valueWithCATransform3D:CATransform3DIdentity]];
+        [mainBubbleLayer addAnimation:scaleAnimation forKey:@"mainBubbleScale"];
+        
     }
     
     // 小球的旋转轨迹动画与到终点时的震动
@@ -186,17 +196,24 @@
             [layer addAnimation:curveAnimation forKey:@"curveAnimation"];
             
             // 弹性缩放
+            CAKeyframeAnimation *scaleAnimation = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
+            scaleAnimation.values = @[[NSValue valueWithCATransform3D:CATransform3DIdentity ] ,
+                                       [NSValue valueWithCATransform3D: CATransform3DMakeScale(1, 0.5, 1)] ,
+                                       [NSValue valueWithCATransform3D: CATransform3DIdentity]];
+            [layer addAnimation:scaleAnimation forKey:@"scaleAnimation"];
             
             // 阻尼震动
+            CGFloat offsetX = isLeft ? -width : 0;
             CAKeyframeAnimation *bounceAnimation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
             bounceAnimation.delegate = self;
             bounceAnimation.beginTime = CACurrentMediaTime() + animationDuration;
-            bounceAnimation.values = @[[NSValue valueWithCGPoint:CGPointMake(0, 0)],
-                                       [NSValue valueWithCGPoint:CGPointMake(0, 4)],
-                                       [NSValue valueWithCGPoint:CGPointMake(0, 0)],
-                                       [NSValue valueWithCGPoint:CGPointMake(0, -4)],
-                                       [NSValue valueWithCGPoint:CGPointMake(0, 0)]];
+            bounceAnimation.values = @[[NSValue valueWithCGPoint:CGPointMake(offsetX, 0)],
+                                       [NSValue valueWithCGPoint:CGPointMake(offsetX, 4)],
+                                       [NSValue valueWithCGPoint:CGPointMake(offsetX, 0)],
+                                       [NSValue valueWithCGPoint:CGPointMake(offsetX, -4)],
+                                       [NSValue valueWithCGPoint:CGPointMake(offsetX, 0)]];
             bounceAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            bounceAnimation.duration = 0.1;
             [layer addAnimation:bounceAnimation forKey:@"bounce"];
             
             
@@ -211,7 +228,6 @@
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
     [CATransaction begin];
-    NSLog(@"hello");
     
     [CATransaction setDisableActions:YES];
     

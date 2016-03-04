@@ -120,6 +120,7 @@
 				TargetAttributes = {
 					4B59FC481C857731008CF5EE = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = 3HUUWY9C4G;
 					};
 				};
 			};
@@ -276,7 +277,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ForceSource/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.yonglibao.ForceSource;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -290,7 +293,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = ForceSource/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.yonglibao.ForceSource;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -317,6 +322,7 @@
 				4B59FC621C857732008CF5EE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
